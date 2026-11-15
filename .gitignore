@@ -1,0 +1,9 @@
+.env
+*.pkl
+*.csv
+mage.log
+__pycache__/
+.ipynb_checkpoints/
+*.zip
+tunnel.log
+.vscode/
