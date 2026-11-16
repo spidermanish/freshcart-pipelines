@@ -1,0 +1,24 @@
+name: CI
+
+on: [push]                         # run on every push, to any branch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest         # a fresh Linux machine for each run
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip               # reuse downloads on later runs
+
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: pytest -q
