@@ -24,10 +24,18 @@ def main():
     channel.basic_qos(prefetch_count=1)          # at most one unacknowledged message at a time
 
     def on_message(ch, method, properties, body):
-        request = json.loads(body)
+        try:
+            request = json.loads(body)
+        except ValueError:                             # not even valid JSON: also bad
+            request = {}
+        if "zone" not in request:
+            print(f"[{name}] REJECTED id={request.get('id')} key={method.routing_key} (no zone)",
+                  flush=True)
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)   # discard it
+            return
         print(f"[{name}] got id={request['id']} key={method.routing_key} "
-              f"type={request['type']}", flush=True)
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+              f"zone={request['zone']}", flush=True)
+        ch.basic_ack(delivery_tag=method.delivery_tag)                      # done with it
 
     channel.basic_consume(queue=queue, on_message_callback=on_message, auto_ack=False)
     print(f"[{name}] waiting on {pattern}", flush=True)

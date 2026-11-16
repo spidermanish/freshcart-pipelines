@@ -14,6 +14,7 @@ ZONES = {
     "chennai": ["tnagar", "whitefield", "adyar"],
 }
 TYPES = ["ride", "food"]
+BAD_EVERY = 10          # D3: every 10th message is sent without its zone
 
 
 def main():
@@ -37,9 +38,12 @@ def main():
                 "type": kind,
                 "ts": datetime.now(timezone.utc).isoformat(),
             }
+            if msg_id % BAD_EVERY == 0:
+                del message["zone"]                        # a bad message: same key, no zone in the body
             channel.basic_publish(exchange=EXCHANGE, routing_key=routing_key,
                                   body=json.dumps(message))
-            print(f"[dispatcher] sent id={msg_id} key={routing_key}", flush=True)
+            bad = "" if "zone" in message else "  (BAD: no zone)"
+            print(f"[dispatcher] sent id={msg_id} key={routing_key}{bad}", flush=True)
             time.sleep(2)
     except KeyboardInterrupt:
         pass
